@@ -1,5 +1,6 @@
 package sample;
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -44,7 +45,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception{
         primaryStage.setTitle("Server");
 
-        choosenFilesPath = new File("D:/Slava/Images");
+        choosenFilesPath = new File("D:/SLAVA/Images");
 
 
         Label choosenPathLabel = new Label ("Choosen Path: ");
@@ -127,76 +128,71 @@ public class Main extends Application {
 
     class SocketChecker implements Runnable{
 
-        private void checkDiviseIsFirst(String clientDeviceName, String homeDirectory, DataOutputStream socketWriter)throws IOException{
+        private void checkDiviseIsFirst(String clientDeviceName, String homeDirectory, DataOutputStream socketWriter) throws IOException {
+            final Vector<String> existFiles = new Vector<>();
             boolean isFirstTime = true;
             for (File includingDir : choosenFilesPath.listFiles()) {
                 if (includingDir.isDirectory()) {
                     String[] dirName = includingDir.getName().split("@", 2);
                     if (dirName.length == 2)
-                        if (dirName[1].equals(clientDeviceName)){
+                        if (dirName[1].equals(clientDeviceName)) {
                             includingDir.renameTo(new File(homeDirectory));
-                            final Vector<String> existFiles = new Vector<>();
+                            isFirstTime = false;
                             try {
-                                Files.walk(Paths.get("D:/SLAVA/Images")).filter(Files::isRegularFile).
+                                Files.walk(Paths.get(choosenFilesPath.toString())).filter(Files::isRegularFile).
                                         forEach(string -> existFiles.add(string.toString().replace(homeDirectory, "")));
-
-                                socketWriter.writeInt(existFiles.size());
-                                for (String str: existFiles) {
-                                    socketWriter.writeUTF(str);
-                                }
-                                isFirstTime = false;
-                                break;
-                            }catch(Exception e){};
+                            } catch (IOException ex) {
+                            }
+                            break;
                         }
                 }
             }
-            if(isFirstTime) socketWriter.writeInt(0);
+            socketWriter.writeInt(existFiles.size());
+            for (String str : existFiles) {
+                socketWriter.writeUTF(str);
+            }
             socketWriter.flush();
         }
         @Override
         public void run() {
             FileOutputStream fileWriter = null;
             try {
-                ss = new ServerSocket(5000);
-                System.out.println("Server run at port 5000");
+                ss = new ServerSocket(2154);
+                System.out.println("Server run at port 2154");
                 imageSocket = ss.accept();
                 DataInputStream socketReader = new DataInputStream(imageSocket.getInputStream());
                 DataOutputStream socketWriter = new DataOutputStream(imageSocket.getOutputStream());
-                short bufferSize = 16*1024;
-                byte[] readBuffer = new byte[bufferSize];
+                int bufferSize = 64*1024;
+
                 String clientAdress = imageSocket.getInetAddress().toString();
                 String clientDeviceName = socketReader.readUTF();
                 String clientName = socketReader.readUTF();
-                String homeDirectory = choosenFilesPath.toString() + "/" + clientName + "@" + clientDeviceName;
+                String homeDirectory = new File(choosenFilesPath.toString() + "/" + clientName + "@" + clientDeviceName).toString();
                 checkDiviseIsFirst(clientDeviceName, homeDirectory, socketWriter);
-
                 while(true) {
+                    long fileLength = socketReader.readLong();
                     String filePath = socketReader.readUTF();
-                    if (filePath == "null") break;
+                    byte[] readBuffer = new byte[bufferSize];
+                    if (filePath == "null" && fileLength == 0) break;
                     String newFilePath = homeDirectory + filePath;
                     File image = new File(newFilePath);
                     image.getParentFile().mkdirs();
-                    image.createNewFile();
-                    fileWriter = new FileOutputStream(image);
-                    long fileLength = socketReader.readLong();
-                    /////////////////////////////////////////////////////var1
-                    byte[] bufferForReading = new byte[(int)fileLength];
-                    socketReader.read(bufferForReading, 0, (int)fileLength);
-                    fileWriter.write(bufferForReading, 0, (int)fileLength);
-                    ////////////////////////////////////////////////////var2
-//                    while (fileLength > 16 * 1024) {
-////                        socketReader.read(readBuffer, 0, bufferSize);
-////                        fileLength -= bufferSize;
-////                        fileWriter.write(readBuffer, 0, bufferSize);
-////                        fileWriter.flush();
-////                    }
-////                    System.out.println(socketReader.read(readBuffer, 0, (int) fileLength));
-////                    fileWriter.write(readBuffer, 0, (int) fileLength);
+                    fileWriter = new FileOutputStream(newFilePath);
+                    int count, total = 0;
+                    while ((count = socketReader.read(readBuffer, 0, (int)Math.min(readBuffer.length, fileLength-total))) != -1){
+                        total += count;
+                        fileWriter.write(readBuffer, 0, count);
+
+                        if(total == fileLength){
+                            break;
+                        }
+                    }
 
                     fileWriter.flush();
                     fileWriter.close();
 
                 }
+
             } catch(IOException ex){
                 System.out.println(ex.fillInStackTrace());
             }
