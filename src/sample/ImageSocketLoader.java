@@ -1,5 +1,7 @@
 package sample;
 
+import javafx.application.Platform;
+
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -28,15 +30,22 @@ public class ImageSocketLoader extends Thread{
 
             String clientDeviceName = socketReader.readUTF();
             String clientName = socketReader.readUTF();
-            int countOfImage = socketReader.readInt();
+            final int countOfImage = socketReader.readInt();
             if(clientName != null) this.clientName = clientName;
             String homeDirectory = new File(choosenFilesPath.toString() + "/" + clientName + "@" + clientDeviceName).toString();
             checkDiviseIsFirst(clientDeviceName, homeDirectory, socketWriter);
+            int currentImage = 0;
+            ProgressBarDialog progressBar = new ProgressBarDialog(clientName);
+            Platform.runLater(progressBar);
             while (true) {
+                final int finalCurrentImage = currentImage;
+                Platform.runLater(()->{ progressBar.setProgress(100*finalCurrentImage/countOfImage);});
+                currentImage++;
                 long fileLength = socketReader.readLong();
                 String filePath = socketReader.readUTF();
+                if (filePath.equals("exist") && fileLength == 1) continue;
                 byte[] readBuffer = new byte[bufferSize];
-                if ((filePath.equals("null") && fileLength == 0) || isInterrupted()) break;
+                if ((filePath.equals("null") && fileLength == 0) || isInterrupted() || !progressBar.isOpen) break;
                 String newFilePath = homeDirectory + filePath;
                 File image = new File(newFilePath);
                 image.getParentFile().mkdirs();
@@ -50,10 +59,8 @@ public class ImageSocketLoader extends Thread{
                         break;
                     }
                 }
-
                 fileWriter.flush();
                 fileWriter.close();
-
             }
             imageSocket.close();
         }catch (IOException ex){
