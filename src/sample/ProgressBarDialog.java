@@ -6,6 +6,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -14,14 +16,17 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
+import javax.swing.plaf.basic.BasicSplitPaneUI;
+
 public class ProgressBarDialog implements Runnable {
     public boolean isOpen = true;
     Label informationLabel;
     Button cancelButton;
     Label titleLabel;
     private String information;
+    EventHandler closeEventHandler;
     public ProgressBarDialog(String name){
-        information = "Copying files from " + name + ": ";
+        information = "Copying files " + name + ": ";
     }
 
     private Stage dialogStage;
@@ -75,16 +80,33 @@ public class ProgressBarDialog implements Runnable {
                 dialogStage.close();
             }
         });
+
+        closeEventHandler = new EventHandler<KeyEvent>(){
+            @Override
+            public void handle(KeyEvent event){
+                if(event.getCode() == KeyCode.ENTER){
+                    dialogStage.close();
+                }
+            }
+        };
     }
 
     public void setProgress(int progress){
-        informationLabel.setText(information + progress + "%");
+        if (progress == -1) {
+            progressIndicator.setVisible(false);
+            cancelButton.setText("Ok");
+            titleLabel.setText("Copying files was failed");
+            progressBar.setProgress(-1);
+            dialogStage.addEventHandler(KeyEvent.KEY_PRESSED, closeEventHandler);
+            return;
+        }
+        if(progress > 0)informationLabel.setText(information + progress + "%");
         progressBar.setProgress(((double)progress)/100);
         if (progress == 100) {
             progressIndicator.setVisible(false);
             cancelButton.setText("Ok");
             titleLabel.setText("Copying files was completed");
+            dialogStage.addEventHandler(KeyEvent.KEY_PRESSED, closeEventHandler);
         }
     }
-
 }

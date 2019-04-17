@@ -7,10 +7,9 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -19,25 +18,20 @@ import java.net.InetAddress;
 
 public class Main extends Application {
 
-    File choosenFilesPath;
-    private BufferedReader br;
-    private InputStreamReader isr;
-    private String message = "";
-    private Label messageValue;
-
+    File chosenFilesPath;
     @Override
     public void start(Stage primaryStage) throws Exception{
         primaryStage.setTitle("Server");
 
-        choosenFilesPath = new File("D:/SLAVA/Images");
+        chosenFilesPath = new File("D:/SLAVA/Images");
 
 
-        Label choosenPathLabel = new Label ("Choosen Path: ");
-        Label choosenPathValue = new Label (choosenFilesPath.toString());
-        HBox choosenPathBox = new HBox();
-        choosenPathBox.getChildren().add(choosenPathLabel);
-        choosenPathBox.getChildren().add(choosenPathValue);
-        choosenPathBox.setAlignment(Pos.CENTER);
+        Label chosenPathLabel = new Label ("Choosen Path: ");
+        Label chosenPathValue = new Label (chosenFilesPath.toString());
+        HBox chosenPathBox = new HBox();
+        chosenPathBox.getChildren().add(chosenPathLabel);
+        chosenPathBox.getChildren().add(chosenPathValue);
+        chosenPathBox.setAlignment(Pos.CENTER);
 
         Button chooseFilePathButton = new Button("Choose Files Path");
 
@@ -50,43 +44,39 @@ public class Main extends Application {
 
         Button checkIpAdressButton = new Button("Check IP-Adress");
 
-        Label messageLabel = new Label ("Your message: ");
-        messageValue = new Label (".");
-        HBox messageBox = new HBox();
-        messageBox.getChildren().add(messageLabel);
-        messageBox.getChildren().add(messageValue);
-        messageBox.setAlignment(Pos.CENTER);
-
-        ImageView worldImage = new ImageView(new File("D:/UNIVER/KursWork/267px-Rotating_earth_(large).gif").toURI().toURL().toString());
 
         VBox mainVBox = new VBox();
-        mainVBox.getChildren().add(choosenPathBox);
+        mainVBox.getChildren().add(chosenPathBox);
         mainVBox.getChildren().add(chooseFilePathButton);
         mainVBox.getChildren().add(ipAdressBox);
         mainVBox.getChildren().add(checkIpAdressButton);
-        mainVBox.getChildren().add(messageBox);
         mainVBox.setAlignment(Pos.CENTER);
 
         StackPane stackPane = new StackPane();
+        BackgroundImage myBI= new BackgroundImage(new Image("file:///D:/UNIVER/KPP/KursWork/Server2/src/sample/for_PC.png", 1920,1080, true, true, true),
+                BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,
+                BackgroundSize.DEFAULT);
+
+        stackPane.setBackground(new Background(myBI));
         stackPane.getChildren().add(mainVBox);
         primaryStage.setScene(new Scene(stackPane, 600, 400));
 
-        SocketChecker socketCheckerThread = new SocketChecker(choosenFilesPath);
+        SocketChecker socketCheckerThread = new SocketChecker(chosenFilesPath);
         chooseFilePathButton.setOnAction(new EventHandler<ActionEvent>(){
             public void handle(ActionEvent event) {
                 DirectoryChooser directoryChooser = new DirectoryChooser();
                 directoryChooser.setTitle("Choose direction to reserv coping");
-                if (choosenFilesPath.exists())
-                    directoryChooser.setInitialDirectory(choosenFilesPath);
+                if (chosenFilesPath.exists())
+                    directoryChooser.setInitialDirectory(chosenFilesPath);
                 else directoryChooser.setInitialDirectory(new File("C:"));
 
                 File filePath = directoryChooser.showDialog(primaryStage);
                 if (filePath != null)
                     if (!filePath.exists() && filePath.getParentFile().exists())
                         filePath = filePath.getParentFile();
-                if (filePath.exists()) choosenFilesPath = filePath;;
-                choosenPathValue.setText(choosenFilesPath.toString());
-                socketCheckerThread.setChoosenFilesPath(choosenFilesPath);
+                if (filePath.exists()) chosenFilesPath = filePath;;
+                chosenPathValue.setText(chosenFilesPath.toString());
+                socketCheckerThread.setChoosenFilesPath(chosenFilesPath);
             }
         });
         checkIpAdressButton.setOnAction(new EventHandler<ActionEvent>() {
