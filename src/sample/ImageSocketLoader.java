@@ -89,7 +89,8 @@ public class ImageSocketLoader extends Thread{
                 throw ex;
             }
         }
-        Platform.runLater(()->{ progressBar.setProgress(-1);});
+        int finalRndProgress = endProgress;
+        Platform.runLater(()->{ progressBar.setProgress(finalRndProgress);});
     }
 
     private void downloadImages(DataInputStream socketReader, DataOutputStream socketWriter, String clientDeviceName) throws Exception{

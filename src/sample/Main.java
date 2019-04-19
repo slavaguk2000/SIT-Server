@@ -21,12 +21,12 @@ public class Main extends Application {
     File chosenFilesPath;
     @Override
     public void start(Stage primaryStage) throws Exception{
-        primaryStage.setTitle("Server");
+        primaryStage.setTitle("Slava Image Transfer Server");
 
         chosenFilesPath = new File("D:/SLAVA/Images");
 
 
-        Label chosenPathLabel = new Label ("Choosen Path: ");
+        Label chosenPathLabel = new Label ("Chosen Path: ");
         Label chosenPathValue = new Label (chosenFilesPath.toString());
         HBox chosenPathBox = new HBox();
         chosenPathBox.getChildren().add(chosenPathLabel);
@@ -35,20 +35,20 @@ public class Main extends Application {
 
         Button chooseFilePathButton = new Button("Choose Files Path");
 
-        Label ipAdressLabel = new Label ("Your IP-Adress: ");
-        Label ipAdressValue = new Label ("");
-        HBox ipAdressBox = new HBox();
-        ipAdressBox.getChildren().add(ipAdressLabel);
-        ipAdressBox.getChildren().add(ipAdressValue);
-        ipAdressBox.setAlignment(Pos.CENTER);
+        Label ipAddressLabel = new Label ("Your IP-Address: ");
+        Label ipAddressValue = new Label ("");
+        HBox ipAddressBox = new HBox();
+        ipAddressBox.getChildren().add(ipAddressLabel);
+        ipAddressBox.getChildren().add(ipAddressValue);
+        ipAddressBox.setAlignment(Pos.CENTER);
 
-        Button checkIpAdressButton = new Button("Check IP-Adress");
+        Button checkIpAdressButton = new Button("Check IP-Address");
 
 
         VBox mainVBox = new VBox();
         mainVBox.getChildren().add(chosenPathBox);
         mainVBox.getChildren().add(chooseFilePathButton);
-        mainVBox.getChildren().add(ipAdressBox);
+        mainVBox.getChildren().add(ipAddressBox);
         mainVBox.getChildren().add(checkIpAdressButton);
         mainVBox.setAlignment(Pos.CENTER);
 
@@ -59,13 +59,13 @@ public class Main extends Application {
 
         stackPane.setBackground(new Background(myBI));
         stackPane.getChildren().add(mainVBox);
-        primaryStage.setScene(new Scene(stackPane, 600, 400));
+        primaryStage.setScene(new Scene(stackPane, 1000, 700));
 
         SocketChecker socketCheckerThread = new SocketChecker(chosenFilesPath);
         chooseFilePathButton.setOnAction(new EventHandler<ActionEvent>(){
             public void handle(ActionEvent event) {
                 DirectoryChooser directoryChooser = new DirectoryChooser();
-                directoryChooser.setTitle("Choose direction to reserv coping");
+                directoryChooser.setTitle("Choose direction to reserve coping");
                 if (chosenFilesPath.exists())
                     directoryChooser.setInitialDirectory(chosenFilesPath);
                 else directoryChooser.setInitialDirectory(new File("C:"));
@@ -83,10 +83,10 @@ public class Main extends Application {
             @Override
             public void handle(ActionEvent event) {
                 try {
-                    ipAdressValue.setText(InetAddress.getLocalHost().getHostAddress().toString());
+                    ipAddressValue.setText(InetAddress.getLocalHost().getHostAddress());
                 }catch (Exception ex){
                     System.out.println("Exception_in_checkIp");
-                    ipAdressValue.setText("Exception");
+                    ipAddressValue.setText("Exception");
                 }
             }
         });

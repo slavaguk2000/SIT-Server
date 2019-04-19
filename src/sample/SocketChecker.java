@@ -8,14 +8,14 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 
 public class SocketChecker extends Thread{
-    File choosenFilesPath;
+    File chosenFilesPath;
     public SocketChecker (File choosenFilesPath){
         super();
-        this.choosenFilesPath = choosenFilesPath;
+        this.chosenFilesPath = choosenFilesPath;
     }
 
     public void setChoosenFilesPath(File choosenFilesPath) {
-        this.choosenFilesPath = choosenFilesPath;
+        this.chosenFilesPath = choosenFilesPath;
     }
 
     @Override
@@ -24,8 +24,8 @@ public class SocketChecker extends Thread{
             ServerSocket mainServerSocket = null;
             short numberOfConnections = 0;
             ArrayList<Thread> loaders = new ArrayList<>();
-            mainServerSocket = new ServerSocket(2154);
-            System.out.println("Server run at port 2154");
+            mainServerSocket = new ServerSocket(4242);
+            System.out.println("Server run at port 4242");
             while(true) {
                 try {
                     if (isInterrupted()) break;
@@ -34,7 +34,7 @@ public class SocketChecker extends Thread{
                         numberOfConnections++;
                         Socket imageSocket = mainServerSocket.accept();
                         System.out.println("Client with IP:" + imageSocket.getInetAddress().toString() + " was connected");
-                        ImageSocketLoader imageSocketLoader = new ImageSocketLoader(imageSocket, choosenFilesPath, numberOfConnections);
+                        ImageSocketLoader imageSocketLoader = new ImageSocketLoader(imageSocket, chosenFilesPath, numberOfConnections);
                         imageSocketLoader.start();
                         loaders.add(imageSocketLoader);
                     }
